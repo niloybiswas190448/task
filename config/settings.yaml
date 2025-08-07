@@ -1,0 +1,160 @@
+# Configuration settings for Bangladesh Road Accident Analysis
+
+# Scraping Settings
+scraping:
+  # General scraping parameters
+  request_delay: 3  # seconds between requests
+  timeout: 30  # request timeout in seconds
+  max_retries: 3
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+  
+  # Date range for scraping (5 years back from current date)
+  start_date: "2019-01-01"
+  end_date: "2024-12-31"
+  
+  # Pagination settings
+  max_pages_per_source: 50
+  articles_per_page: 20
+
+# News Sources Configuration
+news_sources:
+  daily_star:
+    name: "The Daily Star"
+    base_url: "https://www.thedailystar.net"
+    search_url: "https://www.thedailystar.net/search?q=road+accident"
+    enabled: true
+    
+  prothom_alo:
+    name: "Prothom Alo"
+    base_url: "https://www.prothomalo.com"
+    search_url: "https://www.prothomalo.com/search?q=road+accident"
+    enabled: true
+    
+  dhaka_tribune:
+    name: "Dhaka Tribune"
+    base_url: "https://www.dhakatribune.com"
+    search_url: "https://www.dhakatribune.com/search?q=road+accident"
+    enabled: true
+    
+  bdnews24:
+    name: "BDNews24"
+    base_url: "https://bdnews24.com"
+    search_url: "https://bdnews24.com/search?q=road+accident"
+    enabled: true
+
+# NLP and LLM Settings
+nlp:
+  # Text processing
+  min_article_length: 100
+  max_article_length: 10000
+  
+  # Keywords for accident detection
+  accident_keywords:
+    - "road accident"
+    - "traffic accident"
+    - "car crash"
+    - "bus accident"
+    - "truck accident"
+    - "motorcycle accident"
+    - "fatal accident"
+    - "collision"
+    - "crash"
+    - "সড়ক দুর্ঘটনা"
+    - "ট্রাফিক দুর্ঘটনা"
+    - "গাড়ি দুর্ঘটনা"
+    - "বাস দুর্ঘটনা"
+    - "মৃত্যু"
+    - "আহত"
+
+# LLM Configuration
+llm:
+  provider: "openai"  # openai, huggingface, local
+  model: "gpt-3.5-turbo"
+  temperature: 0.1
+  max_tokens: 1000
+  
+  # Extraction prompts
+  extraction_prompt: |
+    Extract the following information from this news article about a road accident:
+    
+    - Date of accident (YYYY-MM-DD format)
+    - Location (city/district name)
+    - Number of deaths (integer)
+    - Number of injuries (integer)
+    - Vehicle types involved (list)
+    - Probable cause (overspeeding, fog, road condition, driver fault, etc.)
+    - Accident severity (minor, major, fatal)
+    - Urban/Rural classification
+    
+    Return the information in JSON format:
+    {
+      "accident_date": "YYYY-MM-DD",
+      "location": "city/district",
+      "deaths": 0,
+      "injuries": 0,
+      "vehicles": ["car", "bus"],
+      "cause": "overspeeding",
+      "severity": "fatal",
+      "area_type": "urban"
+    }
+    
+    Article text: {text}
+
+# Geolocation Settings
+geolocation:
+  provider: "nominatim"  # nominatim, google
+  country_code: "BD"
+  timeout: 10
+  delay: 1  # seconds between geocoding requests
+
+# Data Processing
+data_processing:
+  # Data cleaning
+  remove_duplicates: true
+  fill_missing_dates: true
+  standardize_locations: true
+  
+  # Location mapping for standardization
+  location_mapping:
+    "dhaka": "Dhaka"
+    "chittagong": "Chittagong"
+    "sylhet": "Sylhet"
+    "rajshahi": "Rajshahi"
+    "khulna": "Khulna"
+    "barisal": "Barisal"
+    "rangpur": "Rangpur"
+    "mymensingh": "Mymensingh"
+
+# Analysis Settings
+analysis:
+  # Time series analysis
+  time_period: "monthly"  # daily, weekly, monthly, yearly
+  
+  # Visualization settings
+  plot_style: "seaborn"
+  figure_size: [12, 8]
+  dpi: 300
+  
+  # Heatmap settings
+  heatmap_resolution: 0.1  # degrees
+  min_accidents_for_hotspot: 5
+
+# Output Settings
+output:
+  # File formats
+  save_csv: true
+  save_json: true
+  save_html: true
+  save_png: true
+  
+  # Output directories
+  raw_data_dir: "data/raw"
+  processed_data_dir: "data/processed"
+  results_dir: "data/results"
+  visualizations_dir: "data/results/visualizations"
+
+# Logging
+logging:
+  level: "INFO"
+  file: "logs/accident_analysis.log"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

@@ -1,242 +1,160 @@
-# Vehicle Detection System
+# Bangladesh Road Accident Data Analysis
 
-A comprehensive vehicle detection system built with Python, OpenCV, and YOLO (You Only Look Once). This system can detect vehicles in images, videos, and real-time webcam feeds with advanced features like tracking, counting, and lane detection.
+A comprehensive Python project to collect and analyze road accident data in Bangladesh from major news sources using web scraping, NLP, and LLM integration.
 
 ## Features
 
-### Basic Vehicle Detection
-- **Multi-class detection**: Cars, motorcycles, buses, and trucks
-- **Real-time processing**: Fast detection using YOLOv8
-- **Confidence thresholding**: Adjustable detection sensitivity
-- **Multiple input sources**: Images, videos, and webcam feeds
+- **Web Scraping**: Collects accident news from major Bangladeshi newspapers
+- **NLP Processing**: Extracts structured data from article text
+- **LLM Integration**: Uses OpenAI/LangChain for improved data extraction
+- **Geolocation**: Converts locations to coordinates for mapping
+- **Data Analysis**: Comprehensive trend analysis and visualization
+- **Ethical Scraping**: Respects robots.txt and implements rate limiting
 
-### Advanced Features
-- **Vehicle tracking**: Track individual vehicles across frames
-- **Vehicle counting**: Count vehicles crossing designated lines
-- **Lane detection**: Detect lane markings in traffic scenes
-- **Speed estimation**: Estimate vehicle speeds based on tracking data
-- **Visualization**: Rich visual output with bounding boxes, labels, and statistics
+## News Sources
 
-## Installation
+- The Daily Star
+- Prothom Alo
+- Dhaka Tribune
+- BDNews24
 
-### Prerequisites
-- Python 3.8 or higher
-- CUDA-compatible GPU (optional, for faster processing)
+## Project Structure
 
-### Install Dependencies
-
-1. Clone or download this repository
-2. Install the required packages:
-
-```bash
-pip install -r requirements.txt
+```
+bangladesh_accident_analysis/
+├── src/
+│   ├── scrapers/
+│   │   ├── __init__.py
+│   │   ├── base_scraper.py
+│   │   ├── daily_star.py
+│   │   ├── prothom_alo.py
+│   │   ├── dhaka_tribune.py
+│   │   └── bdnews24.py
+│   ├── nlp/
+│   │   ├── __init__.py
+│   │   ├── text_processor.py
+│   │   ├── llm_extractor.py
+│   │   └── data_extractor.py
+│   ├── geolocation/
+│   │   ├── __init__.py
+│   │   └── geocoder.py
+│   ├── analysis/
+│   │   ├── __init__.py
+│   │   ├── data_cleaner.py
+│   │   ├── trend_analyzer.py
+│   │   └── visualizer.py
+│   └── utils/
+│       ├── __init__.py
+│       ├── config.py
+│       └── helpers.py
+├── data/
+│   ├── raw/
+│   ├── processed/
+│   └── results/
+├── notebooks/
+├── config/
+│   └── settings.yaml
+├── main.py
+├── requirements.txt
+└── README.md
 ```
 
-The system will automatically download the YOLOv8 model on first run.
+## Setup
+
+1. **Clone and navigate to the project**:
+   ```bash
+   cd bangladesh_accident_analysis
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Set up environment variables**:
+   ```bash
+   export OPENAI_API_KEY="your_openai_api_key_here"
+   export GOOGLE_MAPS_API_KEY="your_google_maps_api_key_here"  # Optional
+   ```
+
+4. **Download NLTK data**:
+   ```python
+   python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
+   ```
 
 ## Usage
 
-### Command Line Interface
-
-#### Basic Usage
-
-```bash
-# Process an image
-python main.py --mode image --input path/to/image.jpg --output result.jpg
-
-# Process a video
-python main.py --mode video --input path/to/video.mp4 --output result.mp4
-
-# Use webcam
-python main.py --mode webcam
-```
-
-#### Advanced Options
-
-```bash
-# Adjust confidence threshold
-python main.py --mode image --input image.jpg --confidence 0.7
-
-# Use different YOLO model
-python main.py --mode video --input video.mp4 --model yolov8s.pt
-
-# Process video without display
-python main.py --mode video --input video.mp4 --no-display
-
-# Use specific camera
-python main.py --mode webcam --camera 1
-```
-
-### Python API
-
-#### Basic Vehicle Detection
+### Basic Usage
 
 ```python
-from vehicle_detector import VehicleDetector
+from main import AccidentAnalyzer
 
-# Initialize detector
-detector = VehicleDetector(confidence_threshold=0.5)
+# Initialize the analyzer
+analyzer = AccidentAnalyzer()
 
-# Detect vehicles in image
-detections = detector.detect_vehicles(image)
-result_image = detector.draw_detections(image, detections)
+# Collect data from all sources
+analyzer.collect_data()
 
-# Process image file
-result = detector.detect_from_image("input.jpg", "output.jpg")
+# Process and analyze the data
+analyzer.analyze_data()
 
-# Process video
-detector.detect_from_video("input.mp4", "output.mp4")
-
-# Use webcam
-detector.detect_from_webcam()
+# Generate visualizations
+analyzer.generate_visualizations()
 ```
 
-#### Advanced Vehicle Detection
-
-```python
-from advanced_detector import AdvancedVehicleDetector
-
-# Initialize advanced detector
-detector = AdvancedVehicleDetector(confidence_threshold=0.5)
-
-# Process video with tracking and counting
-detector.process_video_advanced(
-    video_path="traffic.mp4",
-    output_path="result.mp4",
-    counting_line_y=300  # Set counting line at y=300
-)
-```
-
-### Interactive Examples
-
-Run the examples without arguments:
+### Command Line Usage
 
 ```bash
-python main.py
-```
+# Collect data from all sources
+python main.py --collect
 
-This will:
-1. Create a sample traffic image
-2. Process it with vehicle detection
-3. Start webcam detection (if available)
+# Analyze collected data
+python main.py --analyze
 
-## File Structure
+# Generate visualizations
+python main.py --visualize
 
-```
-vehicle-detection/
-├── vehicle_detector.py      # Basic vehicle detection class
-├── advanced_detector.py     # Advanced features (tracking, counting)
-├── main.py                  # Command-line interface and examples
-├── requirements.txt         # Python dependencies
-└── README.md               # This file
+# Run complete pipeline
+python main.py --full
 ```
 
 ## Configuration
 
-### Model Options
-- `yolov8n.pt`: Nano model (fastest, least accurate)
-- `yolov8s.pt`: Small model (balanced)
-- `yolov8m.pt`: Medium model (more accurate)
-- `yolov8l.pt`: Large model (very accurate)
-- `yolov8x.pt`: Extra large model (most accurate)
+Edit `config/settings.yaml` to customize:
+- Scraping parameters (delays, timeouts)
+- News source URLs
+- LLM settings
+- Analysis parameters
 
-### Confidence Threshold
-- Range: 0.0 to 1.0
-- Default: 0.5
-- Higher values = fewer detections but higher confidence
-- Lower values = more detections but may include false positives
+## Data Output
 
-## Performance
+The project generates:
+- Raw scraped articles (CSV)
+- Processed accident data (CSV)
+- Interactive visualizations (HTML)
+- Static plots (PNG)
+- Analysis reports (JSON)
 
-### Speed vs Accuracy Trade-offs
+## Ethical Considerations
 
-| Model | Speed | Accuracy | Memory Usage |
-|-------|-------|----------|--------------|
-| YOLOv8n | Fastest | Good | Low |
-| YOLOv8s | Fast | Better | Medium |
-| YOLOv8m | Medium | Best | High |
-| YOLOv8l | Slow | Excellent | Very High |
-| YOLOv8x | Slowest | Outstanding | Highest |
-
-### Hardware Recommendations
-
-- **CPU-only**: Use YOLOv8n or YOLOv8s
-- **GPU (CUDA)**: Can use larger models for better accuracy
-- **Real-time applications**: Use YOLOv8n with confidence threshold 0.6+
-
-## Examples
-
-### Basic Image Detection
-```python
-from vehicle_detector import VehicleDetector
-
-detector = VehicleDetector()
-result = detector.detect_from_image("traffic.jpg", "result.jpg")
-print(f"Detection completed!")
-```
-
-### Video Processing with Statistics
-```python
-from vehicle_detector import VehicleDetector
-
-detector = VehicleDetector(confidence_threshold=0.6)
-detector.detect_from_video("traffic.mp4", "output.mp4", show_video=True)
-```
-
-### Advanced Tracking and Counting
-```python
-from advanced_detector import AdvancedVehicleDetector
-
-detector = AdvancedVehicleDetector()
-detector.process_video_advanced(
-    video_path="highway.mp4",
-    output_path="tracked.mp4",
-    counting_line_y=400,
-    show_video=True
-)
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Model download fails**
-   - Check internet connection
-   - Try downloading manually from Ultralytics
-
-2. **CUDA errors**
-   - Install CPU-only PyTorch: `pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu`
-
-3. **Webcam not working**
-   - Check camera permissions
-   - Try different camera ID: `--camera 1`
-
-4. **Low FPS**
-   - Use smaller model (YOLOv8n)
-   - Increase confidence threshold
-   - Reduce input resolution
-
-### Performance Tips
-
-- Use GPU acceleration when available
-- Process videos without display for faster processing
-- Adjust confidence threshold based on your needs
-- Use appropriate model size for your use case
+- Respects robots.txt files
+- Implements rate limiting (2-5 second delays)
+- Uses proper user agents
+- Handles errors gracefully
+- Stores only publicly available data
 
 ## Contributing
 
-Feel free to contribute to this project by:
-- Reporting bugs
-- Suggesting new features
-- Improving documentation
-- Adding new detection models
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
 ## License
 
-This project is open source and available under the MIT License.
+MIT License - see LICENSE file for details.
 
-## Acknowledgments
+## Disclaimer
 
-- [Ultralytics](https://github.com/ultralytics/ultralytics) for YOLOv8
-- [OpenCV](https://opencv.org/) for computer vision capabilities
-- [PyTorch](https://pytorch.org/) for deep learning framework
+This project is for educational and research purposes. Always respect website terms of service and implement ethical scraping practices.

@@ -1,278 +1,272 @@
 #!/usr/bin/env python3
 """
-Demo script for vehicle detection system.
-Provides interactive examples and showcases different features.
+Demo script for Bangladesh Road Accident Analysis.
+This script demonstrates the key features of the accident analysis system.
 """
 
-import cv2
-import numpy as np
-import time
-from vehicle_detector import VehicleDetector
-from advanced_detector import AdvancedVehicleDetector
+import sys
+from pathlib import Path
+import pandas as pd
+from datetime import datetime, date
+import json
 
-def create_demo_scene():
-    """Create a realistic traffic scene for demonstration."""
-    # Create a larger, more realistic scene
-    scene = np.zeros((720, 1280, 3), dtype=np.uint8)
-    
-    # Sky gradient
-    for y in range(300):
-        intensity = int(200 - (y / 300) * 100)
-        scene[y, :] = (intensity, intensity, intensity + 50)
-    
-    # Road
-    scene[300:, :] = (40, 40, 40)
-    
-    # Lane markings
-    for y in range(350, 720, 80):
-        cv2.line(scene, (0, y), (1280, y), (255, 255, 255), 4)
-    
-    # Sidewalk
-    cv2.rectangle(scene, (0, 280), (1280, 300), (100, 100, 100), -1)
-    
-    # Buildings in background
-    buildings = [
-        (50, 50, 200, 280, (80, 80, 80)),
-        (250, 80, 350, 280, (70, 70, 70)),
-        (400, 60, 500, 280, (90, 90, 90)),
-        (550, 100, 650, 280, (75, 75, 75)),
-        (700, 40, 800, 280, (85, 85, 85)),
-        (850, 70, 950, 280, (65, 65, 65)),
-        (1000, 90, 1100, 280, (95, 95, 95)),
-        (1150, 30, 1250, 280, (60, 60, 60))
+# Add src to path
+sys.path.append(str(Path(__file__).parent / "src"))
+
+from src.utils.config import config
+from src.utils.helpers import setup_logging
+from src.nlp.text_processor import TextProcessor
+from src.nlp.llm_extractor import LLMExtractor
+from src.geolocation.geocoder import Geocoder
+from src.analysis.data_cleaner import DataCleaner
+from src.analysis.visualizer import Visualizer
+from src.analysis.trend_analyzer import TrendAnalyzer
+
+
+def create_sample_data():
+    """Create sample accident data for demonstration."""
+    sample_articles = [
+        {
+            'id': 'sample_001',
+            'source': 'The Daily Star',
+            'url': 'https://example.com/accident1',
+            'title': 'Bus accident in Dhaka leaves 5 dead, 15 injured',
+            'content': 'A passenger bus collided with a truck on Dhaka-Chittagong highway yesterday, resulting in 5 deaths and 15 injuries. The accident occurred due to overspeeding and poor visibility caused by fog. The bus was carrying 40 passengers when it crashed into the truck near Narayanganj.',
+            'date': date(2024, 1, 15),
+            'scraped_at': datetime.now().isoformat()
+        },
+        {
+            'id': 'sample_002',
+            'source': 'Prothom Alo',
+            'url': 'https://example.com/accident2',
+            'title': 'সড়ক দুর্ঘটনায় ৩ জন নিহত, ৮ জন আহত',
+            'content': 'চট্টগ্রামে একটি মোটরসাইকেল দুর্ঘটনায় ৩ জন নিহত এবং ৮ জন আহত হয়েছেন। দুর্ঘটনাটি রাত ১১টায় ঘটে। চালকের অসাবধানতার কারণে দুর্ঘটনাটি ঘটেছে বলে জানা গেছে।',
+            'date': date(2024, 1, 20),
+            'scraped_at': datetime.now().isoformat()
+        },
+        {
+            'id': 'sample_003',
+            'source': 'Dhaka Tribune',
+            'url': 'https://example.com/accident3',
+            'title': 'Truck overturns in Sylhet, 2 killed',
+            'content': 'A truck carrying construction materials overturned in Sylhet district, killing 2 people and injuring 3 others. The accident was caused by mechanical failure of the truck brakes. The incident occurred on the Sylhet-Sunamganj road.',
+            'date': date(2024, 2, 5),
+            'scraped_at': datetime.now().isoformat()
+        },
+        {
+            'id': 'sample_004',
+            'source': 'BDNews24',
+            'url': 'https://example.com/accident4',
+            'title': 'Rickshaw accident in Rajshahi claims 1 life',
+            'content': 'A rickshaw was hit by a speeding car in Rajshahi city, resulting in the death of one passenger and injuries to two others. The accident occurred due to driver negligence and poor road conditions.',
+            'date': date(2024, 2, 10),
+            'scraped_at': datetime.now().isoformat()
+        },
+        {
+            'id': 'sample_005',
+            'source': 'The Daily Star',
+            'url': 'https://example.com/accident5',
+            'title': 'Multiple vehicle collision in Khulna',
+            'content': 'A major accident involving three vehicles occurred in Khulna city, leaving 4 dead and 12 injured. The collision involved a bus, a car, and a motorcycle. Poor weather conditions and driver error were cited as causes.',
+            'date': date(2024, 2, 15),
+            'scraped_at': datetime.now().isoformat()
+        }
     ]
     
-    for x1, y1, x2, y2, color in buildings:
-        cv2.rectangle(scene, (x1, y1), (x2, y2), color, -1)
-        # Add windows
-        for wx in range(x1 + 20, x2 - 20, 40):
-            for wy in range(y1 + 20, y2 - 20, 40):
-                cv2.rectangle(scene, (wx, wy), (wx + 20, wy + 20), (255, 255, 200), -1)
-    
-    # Vehicles with more realistic shapes
-    vehicles = [
-        # Cars
-        ((200, 400), (350, 500), (255, 0, 0)),      # Red car
-        ((500, 380), (650, 480), (0, 255, 0)),      # Green car
-        ((800, 420), (950, 520), (0, 0, 255)),      # Blue car
-        ((1100, 400), (1250, 500), (255, 255, 0)),  # Yellow car
-        
-        # Trucks
-        ((100, 520), (300, 620), (128, 0, 128)),    # Purple truck
-        ((600, 540), (800, 640), (0, 255, 255)),    # Cyan truck
-        
-        # Motorcycles
-        ((400, 480), (450, 520), (255, 165, 0)),    # Orange motorcycle
-        ((900, 500), (950, 540), (255, 192, 203)),  # Pink motorcycle
-    ]
-    
-    for (x1, y1), (x2, y2), color in vehicles:
-        # Main body
-        cv2.rectangle(scene, (x1, y1), (x2, y2), color, -1)
-        
-        # Windows (for cars and trucks)
-        if y2 - y1 > 80:  # Larger vehicles
-            window_y1 = y1 + 20
-            window_y2 = y2 - 30
-            window_x1 = x1 + 30
-            window_x2 = x2 - 30
-            cv2.rectangle(scene, (window_x1, window_y1), (window_x2, window_y2), (200, 200, 255), -1)
-        
-        # Wheels
-        wheel_radius = 15
-        cv2.circle(scene, (x1 + 30, y2), wheel_radius, (20, 20, 20), -1)
-        cv2.circle(scene, (x2 - 30, y2), wheel_radius, (20, 20, 20), -1)
-    
-    # Add some pedestrians
-    pedestrians = [
-        (150, 250, (255, 200, 200)),
-        (450, 260, (200, 255, 200)),
-        (750, 245, (200, 200, 255)),
-        (1050, 255, (255, 255, 200))
-    ]
-    
-    for x, y, color in pedestrians:
-        # Head
-        cv2.circle(scene, (x, y), 8, color, -1)
-        # Body
-        cv2.rectangle(scene, (x-5, y+8), (x+5, y+25), color, -1)
-        # Arms
-        cv2.line(scene, (x-5, y+12), (x-15, y+20), color, 3)
-        cv2.line(scene, (x+5, y+12), (x+15, y+20), color, 3)
-        # Legs
-        cv2.line(scene, (x-3, y+25), (x-8, y+35), color, 3)
-        cv2.line(scene, (x+3, y+25), (x+8, y+35), color, 3)
-    
-    return scene
+    return sample_articles
 
-def demo_basic_detection():
-    """Demonstrate basic vehicle detection."""
-    print("\n🚗 Basic Vehicle Detection Demo")
-    print("=" * 40)
-    
-    # Create detector
-    detector = VehicleDetector(confidence_threshold=0.4)
-    
-    # Create demo scene
-    scene = create_demo_scene()
-    cv2.imwrite("demo_scene.jpg", scene)
-    print("✓ Created demo traffic scene")
-    
-    # Detect vehicles
-    print("Detecting vehicles...")
-    start_time = time.time()
-    detections = detector.detect_vehicles(scene)
-    detection_time = time.time() - start_time
-    
-    print(f"✓ Detection completed in {detection_time:.3f} seconds")
-    print(f"✓ Found {len(detections)} vehicles")
-    
-    # Show detections
-    result = detector.draw_detections(scene, detections)
-    cv2.imwrite("demo_basic_result.jpg", result)
-    
-    # Display statistics
-    stats = detector.get_detection_stats(detections)
-    print(f"✓ Detection statistics: {stats}")
-    
-    # Show result
-    cv2.imshow('Basic Vehicle Detection Demo', result)
-    print("Press any key to continue...")
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
 
-def demo_advanced_features():
-    """Demonstrate advanced features."""
-    print("\n🚀 Advanced Features Demo")
-    print("=" * 40)
+def demo_text_processing():
+    """Demonstrate text processing capabilities."""
+    print("\n=== Text Processing Demo ===")
     
-    # Create advanced detector
-    detector = AdvancedVehicleDetector(confidence_threshold=0.4)
+    text_processor = TextProcessor()
     
-    # Create demo scene
-    scene = create_demo_scene()
+    # Sample text
+    sample_text = "A bus accident in Dhaka yesterday left 5 people dead and 15 injured due to overspeeding and fog."
     
-    # Set counting line
-    detector.set_counting_zone(400)
-    
-    # Detect and track
-    print("Detecting and tracking vehicles...")
-    detections = detector.detect_vehicles(scene)
-    tracked_detections = detector.update_tracking(detections)
-    
-    print(f"✓ Tracked {len(tracked_detections)} vehicles")
-    
-    # Detect lanes
-    lane_lines = detector.detect_lanes(scene)
-    print(f"✓ Detected {len(lane_lines)} lane lines")
-    
-    # Draw advanced visualizations
-    result = detector.draw_advanced_detections(scene, tracked_detections)
-    cv2.imwrite("demo_advanced_result.jpg", result)
-    
-    # Show result
-    cv2.imshow('Advanced Vehicle Detection Demo', result)
-    print("Press any key to continue...")
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    print(f"Sample text: {sample_text}")
+    print(f"Is accident article: {text_processor.is_accident_article(sample_text)}")
+    print(f"Vehicle types: {text_processor.extract_vehicle_types(sample_text)}")
+    print(f"Probable cause: {text_processor.extract_cause(sample_text)}")
+    print(f"Severity: {text_processor.extract_severity(sample_text)}")
+    print(f"Area type: {text_processor.extract_area_type(sample_text)}")
+    print(f"Deaths and injuries: {text_processor.extract_deaths_and_injuries(sample_text)}")
+    print(f"Location: {text_processor.extract_location(sample_text)}")
 
-def demo_webcam():
-    """Demonstrate webcam detection."""
-    print("\n📹 Webcam Demo")
-    print("=" * 40)
-    print("This will open your webcam for real-time vehicle detection.")
-    print("Press 'q' to quit, 's' to save a frame")
+
+def demo_llm_extraction():
+    """Demonstrate LLM extraction capabilities."""
+    print("\n=== LLM Extraction Demo ===")
+    
+    llm_extractor = LLMExtractor()
+    
+    if llm_extractor.is_available():
+        print("LLM extraction is available")
+        stats = llm_extractor.get_stats()
+        print(f"LLM stats: {stats}")
+    else:
+        print("LLM extraction is not available (no API key configured)")
+        print("This is normal for demo purposes")
+
+
+def demo_geolocation():
+    """Demonstrate geolocation capabilities."""
+    print("\n=== Geolocation Demo ===")
+    
+    geocoder = Geocoder()
+    
+    # Test locations
+    test_locations = ['Dhaka', 'Chittagong', 'Sylhet', 'Rajshahi']
+    
+    for location in test_locations:
+        coords = geocoder.get_location_coordinates(location)
+        if coords:
+            print(f"{location}: {coords}")
+        else:
+            print(f"{location}: Not found")
+
+
+def demo_data_cleaning():
+    """Demonstrate data cleaning capabilities."""
+    print("\n=== Data Cleaning Demo ===")
+    
+    # Create sample data
+    sample_articles = create_sample_data()
+    
+    # Process with text processor
+    text_processor = TextProcessor()
+    processed_articles = []
+    
+    for article in sample_articles:
+        processed_article = text_processor.process_article(article)
+        processed_articles.append(processed_article)
+    
+    # Add geolocation
+    geocoder = Geocoder()
+    articles_with_geo = geocoder.add_coordinates_to_articles(processed_articles)
+    
+    # Clean data
+    data_cleaner = DataCleaner()
+    df = data_cleaner.clean_articles_data(articles_with_geo)
+    
+    print(f"Cleaned data shape: {df.shape}")
+    print(f"Columns: {list(df.columns)}")
+    
+    # Get cleaning stats
+    stats = data_cleaner.get_cleaning_stats(df)
+    print(f"Cleaning statistics: {json.dumps(stats, indent=2, default=str)}")
+    
+    return df
+
+
+def demo_analysis(df):
+    """Demonstrate analysis capabilities."""
+    print("\n=== Analysis Demo ===")
+    
+    if df.empty:
+        print("No data to analyze")
+        return
+    
+    trend_analyzer = TrendAnalyzer()
+    
+    # Analyze trends
+    trend_results = trend_analyzer.analyze_trends(df)
+    print(f"Trend analysis results: {json.dumps(trend_results, indent=2, default=str)}")
+    
+    # Analyze hotspots
+    hotspot_results = trend_analyzer.analyze_hotspots(df)
+    print(f"Hotspot analysis results: {json.dumps(hotspot_results, indent=2, default=str)}")
+    
+    # Get summary statistics
+    summary_stats = trend_analyzer.get_summary_statistics(df)
+    print(f"Summary statistics: {json.dumps(summary_stats, indent=2, default=str)}")
+
+
+def demo_visualization(df):
+    """Demonstrate visualization capabilities."""
+    print("\n=== Visualization Demo ===")
+    
+    if df.empty:
+        print("No data to visualize")
+        return
+    
+    visualizer = Visualizer()
     
     try:
-        detector = VehicleDetector(confidence_threshold=0.5)
-        detector.detect_from_webcam()
+        # Create visualizations
+        visualizer.create_time_series_plot(df)
+        visualizer.create_cause_analysis(df)
+        visualizer.create_severity_analysis(df)
+        visualizer.create_location_analysis(df)
+        visualizer.create_summary_dashboard(df, {})
+        
+        print("Visualizations created successfully!")
+        print("Check the 'data/results/visualizations' directory for output files")
+        
     except Exception as e:
-        print(f"Webcam not available: {e}")
-        print("You can still use the system with image or video files.")
+        print(f"Error creating visualizations: {e}")
 
-def demo_performance_comparison():
-    """Compare performance of different models."""
-    print("\n⚡ Performance Comparison Demo")
-    print("=" * 40)
-    
-    scene = create_demo_scene()
-    models = ['yolov8n.pt', 'yolov8s.pt']
-    
-    for model in models:
-        try:
-            print(f"\nTesting {model}...")
-            detector = VehicleDetector(model_path=model, confidence_threshold=0.5)
-            
-            # Warm up
-            detector.detect_vehicles(scene)
-            
-            # Performance test
-            times = []
-            for _ in range(5):
-                start_time = time.time()
-                detections = detector.detect_vehicles(scene)
-                detection_time = time.time() - start_time
-                times.append(detection_time)
-            
-            avg_time = np.mean(times)
-            fps = 1.0 / avg_time
-            
-            print(f"✓ {model}: {avg_time:.3f}s per frame ({fps:.1f} FPS)")
-            print(f"  Detected {len(detections)} vehicles")
-            
-        except Exception as e:
-            print(f"✗ {model}: Error - {e}")
 
-def interactive_menu():
-    """Show interactive menu."""
-    while True:
-        print("\n" + "=" * 50)
-        print("🚗 Vehicle Detection System - Interactive Demo")
-        print("=" * 50)
-        print("1. Basic Vehicle Detection")
-        print("2. Advanced Features (Tracking & Counting)")
-        print("3. Webcam Detection")
-        print("4. Performance Comparison")
-        print("5. Run All Demos")
-        print("6. Exit")
-        print("-" * 50)
-        
-        choice = input("Select an option (1-6): ").strip()
-        
-        if choice == '1':
-            demo_basic_detection()
-        elif choice == '2':
-            demo_advanced_features()
-        elif choice == '3':
-            demo_webcam()
-        elif choice == '4':
-            demo_performance_comparison()
-        elif choice == '5':
-            demo_basic_detection()
-            demo_advanced_features()
-            demo_performance_comparison()
-            print("\n🎉 All demos completed!")
-        elif choice == '6':
-            print("Goodbye! 👋")
-            break
-        else:
-            print("Invalid choice. Please select 1-6.")
+def demo_configuration():
+    """Demonstrate configuration capabilities."""
+    print("\n=== Configuration Demo ===")
+    
+    # Show current configuration
+    print("Current configuration:")
+    print(f"Scraping delay: {config.get('scraping.request_delay')} seconds")
+    print(f"News sources: {list(config.get_news_sources().keys())}")
+    print(f"NLP keywords: {len(config.get_nlp_config().get('accident_keywords', []))}")
+    print(f"LLM provider: {config.get_llm_config().get('provider')}")
+    print(f"Geolocation provider: {config.get_geolocation_config().get('provider')}")
+
 
 def main():
-    """Main demo function."""
-    print("🚗 Vehicle Detection System Demo")
-    print("Welcome to the interactive vehicle detection demonstration!")
+    """Run the complete demo."""
+    print("=== Bangladesh Road Accident Analysis Demo ===")
+    print("This demo showcases the key features of the accident analysis system.")
     
-    # Check if user wants interactive mode
-    if len(input("Press Enter for interactive menu, or type 'auto' for automatic demo: ").strip()) == 0:
-        interactive_menu()
-    else:
-        # Run automatic demo
-        print("\nRunning automatic demo...")
-        demo_basic_detection()
-        demo_advanced_features()
-        demo_performance_comparison()
-        print("\n🎉 Demo completed! Check the generated images for results.")
+    # Set up logging
+    logger = setup_logging("demo")
+    
+    try:
+        # Demo 1: Configuration
+        demo_configuration()
+        
+        # Demo 2: Text Processing
+        demo_text_processing()
+        
+        # Demo 3: LLM Extraction
+        demo_llm_extraction()
+        
+        # Demo 4: Geolocation
+        demo_geolocation()
+        
+        # Demo 5: Data Cleaning
+        df = demo_data_cleaning()
+        
+        # Demo 6: Analysis
+        demo_analysis(df)
+        
+        # Demo 7: Visualization
+        demo_visualization(df)
+        
+        print("\n=== Demo Completed Successfully ===")
+        print("The system is ready for real data collection and analysis!")
+        print("\nTo run the full pipeline with real data:")
+        print("1. Set up your API keys (optional):")
+        print("   export OPENAI_API_KEY='your_key_here'")
+        print("2. Run the main script:")
+        print("   python main.py --full")
+        print("3. Or run individual components:")
+        print("   python main.py --collect  # Collect data")
+        print("   python main.py --analyze  # Analyze data")
+        print("   python main.py --visualize  # Generate visualizations")
+        
+    except Exception as e:
+        logger.error(f"Error in demo: {e}")
+        print(f"Demo failed with error: {e}")
+
 
 if __name__ == "__main__":
     main()
