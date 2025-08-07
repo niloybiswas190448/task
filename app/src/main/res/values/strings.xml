@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Internet Tools Analyzer</string>
+    
+    <!-- Main Activity -->
+    <string name="main_title">Internet Tools Analyzer</string>
+    <string name="main_subtitle">Select a tool to analyze your internet connection:</string>
+    
+    <!-- Tool Names -->
+    <string name="speed_test">Speed Test</string>
+    <string name="network_info">Network Info</string>
+    <string name="ping_test">Ping Test</string>
+    <string name="dns_lookup">DNS Lookup</string>
+    <string name="port_scanner">Port Scanner</string>
+    <string name="traceroute">Traceroute</string>
+    
+    <!-- Tool Descriptions -->
+    <string name="speed_test_desc">Test download &amp; upload speeds</string>
+    <string name="network_info_desc">View network details</string>
+    <string name="ping_test_desc">Test response times</string>
+    <string name="dns_lookup_desc">Resolve domain names</string>
+    <string name="port_scanner_desc">Scan open ports</string>
+    <string name="traceroute_desc">Trace network path</string>
+    
+    <!-- Speed Test -->
+    <string name="speed_test_title">Speed Test</string>
+    <string name="test_results">Test Results</string>
+    <string name="ping_label">Ping: %s</string>
+    <string name="download_speed_label">Download: %s</string>
+    <string name="upload_speed_label">Upload: %s</string>
+    <string name="start_speed_test">Start Speed Test</string>
+    <string name="test_information">Test Information</string>
+    <string name="speed_test_info">• This speed test measures your internet connection performance\n\n• Download speed: How fast you can receive data\n\n• Upload speed: How fast you can send data\n\n• Ping: Response time to test servers\n\n• Results may vary based on network conditions\n\n• For best results, close other apps using internet</string>
+    
+    <!-- Network Info -->
+    <string name="network_info_title">Network Information</string>
+    <string name="ip_addresses">IP Addresses</string>
+    <string name="local_ip_label">Local IP: %s</string>
+    <string name="public_ip_label">Public IP: %s</string>
+    <string name="connection_details">Connection Details</string>
+    <string name="network_type_label">Network Type: %s</string>
+    <string name="wifi_information">WiFi Information</string>
+    <string name="dns_information">DNS Information</string>
+    
+    <!-- Ping Test -->
+    <string name="ping_test_title">Ping Test</string>
+    <string name="host_to_ping">Host to Ping</string>
+    <string name="host_input_hint">Enter hostname or IP address</string>
+    <string name="ping_host">Ping Host</string>
+    <string name="default_hosts">Default Hosts</string>
+    <string name="ping_results">Ping Results</string>
+    <string name="ping_default_message">Enter a hostname and click \'Ping Host\' to start testing.</string>
+    
+    <!-- DNS Lookup -->
+    <string name="dns_lookup_title">DNS Lookup</string>
+    <string name="domain_to_lookup">Domain to Lookup</string>
+    <string name="domain_input_hint">Enter domain name or IP address</string>
+    <string name="dns_lookup_button">DNS Lookup</string>
+    <string name="default_domains">Default Domains</string>
+    <string name="reverse_dns_lookup">Reverse DNS Lookup</string>
+    <string name="dns_results">DNS Results</string>
+    <string name="dns_default_message">Enter a domain name and click \'DNS Lookup\' to start.</string>
+    
+    <!-- Port Scanner -->
+    <string name="port_scanner_title">Port Scanner</string>
+    <string name="host_to_scan">Host to Scan</string>
+    <string name="scan_common_ports">Scan Common Ports</string>
+    <string name="custom_port_range">Custom Port Range (80-90)</string>
+    <string name="scan_results">Scan Results</string>
+    <string name="port_scanner_default_message">Enter a hostname and click \'Scan Common Ports\' to start.</string>
+    
+    <!-- Traceroute -->
+    <string name="traceroute_title">Traceroute</string>
+    <string name="host_to_trace">Host to Trace</string>
+    <string name="start_traceroute">Start Traceroute</string>
+    <string name="network_diagnostics">Network Diagnostics</string>
+    <string name="traceroute_results">Traceroute Results</string>
+    <string name="traceroute_default_message">Enter a hostname and click \'Start Traceroute\' to begin.</string>
+    
+    <!-- Common -->
+    <string name="loading">Loading...</string>
+    <string name="error">Error</string>
+    <string name="success">Success</string>
+    <string name="timeout">Timeout</string>
+    <string name="unreachable">Unreachable</string>
+    <string name="open">OPEN</string>
+    <string name="closed">CLOSED</string>
+</resources>
