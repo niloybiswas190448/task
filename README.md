@@ -1,160 +1,63 @@
-# Bangladesh Road Accident Data Analysis
+# Nova Scotia SPI Analysis - Google Earth Engine
 
-A comprehensive Python project to collect and analyze road accident data in Bangladesh from major news sources using web scraping, NLP, and LLM integration.
+This is a simple Google Earth Engine script to calculate and visualize Standardized Precipitation Index (SPI) for Nova Scotia.
 
-## Features
+## What is SPI?
+SPI (Standardized Precipitation Index) measures drought conditions by comparing current precipitation to historical averages. Values range from -3 (very dry) to +3 (very wet).
 
-- **Web Scraping**: Collects accident news from major Bangladeshi newspapers
-- **NLP Processing**: Extracts structured data from article text
-- **LLM Integration**: Uses OpenAI/LangChain for improved data extraction
-- **Geolocation**: Converts locations to coordinates for mapping
-- **Data Analysis**: Comprehensive trend analysis and visualization
-- **Ethical Scraping**: Respects robots.txt and implements rate limiting
+## How to Use This Code
 
-## News Sources
+### Step 1: Access Google Earth Engine
+1. Go to [Google Earth Engine Code Editor](https://code.earthengine.google.com/)
+2. Sign in with your Google account
+3. If you don't have access, request it from Google
 
-- The Daily Star
-- Prothom Alo
-- Dhaka Tribune
-- BDNews24
+### Step 2: Copy the Code
+1. Open the file `simple_nova_scotia_spi.js`
+2. Copy all the code
+3. Paste it into the Google Earth Engine Code Editor
 
-## Project Structure
+### Step 3: Run the Analysis
+1. Click the "Run" button in the Code Editor
+2. Wait for the processing to complete (may take a few minutes)
+3. The map will show SPI layers for each year
 
-```
-bangladesh_accident_analysis/
-├── src/
-│   ├── scrapers/
-│   │   ├── __init__.py
-│   │   ├── base_scraper.py
-│   │   ├── daily_star.py
-│   │   ├── prothom_alo.py
-│   │   ├── dhaka_tribune.py
-│   │   └── bdnews24.py
-│   ├── nlp/
-│   │   ├── __init__.py
-│   │   ├── text_processor.py
-│   │   ├── llm_extractor.py
-│   │   └── data_extractor.py
-│   ├── geolocation/
-│   │   ├── __init__.py
-│   │   └── geocoder.py
-│   ├── analysis/
-│   │   ├── __init__.py
-│   │   ├── data_cleaner.py
-│   │   ├── trend_analyzer.py
-│   │   └── visualizer.py
-│   └── utils/
-│       ├── __init__.py
-│       ├── config.py
-│       └── helpers.py
-├── data/
-│   ├── raw/
-│   ├── processed/
-│   └── results/
-├── notebooks/
-├── config/
-│   └── settings.yaml
-├── main.py
-├── requirements.txt
-└── README.md
-```
+### Step 4: Export Maps
+1. Go to the "Tasks" tab in the Code Editor
+2. You'll see export tasks for each year
+3. Click "Run" on each task to download the maps to your Google Drive
 
-## Setup
+## What the Code Does
 
-1. **Clone and navigate to the project**:
-   ```bash
-   cd bangladesh_accident_analysis
-   ```
+1. **Defines Nova Scotia area** - Uses a rectangle covering Nova Scotia
+2. **Calculates SPI for each year** - Compares yearly rainfall to 30-year average (1991-2020)
+3. **Creates visualizations** - Color-coded maps showing drought conditions
+4. **Exports results** - Saves maps to your Google Drive
 
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+## Years Analyzed
+- 2001
+- 2008  
+- 2019
+- 2022
+- 2023
+- 2024
 
-3. **Set up environment variables**:
-   ```bash
-   export OPENAI_API_KEY="your_openai_api_key_here"
-   export GOOGLE_MAPS_API_KEY="your_google_maps_api_key_here"  # Optional
-   ```
+## Color Legend
+- **Red**: Very Dry (SPI -3 to -2)
+- **Orange**: Dry (SPI -2 to -1)
+- **Yellow**: Slightly Dry (SPI -1 to 0)
+- **Light Green**: Normal (SPI 0 to 1)
+- **Green**: Wet (SPI 1 to 2)
+- **Dark Green**: Very Wet (SPI 2 to 3)
 
-4. **Download NLTK data**:
-   ```python
-   python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
-   ```
+## Data Source
+Uses CHIRPS (Climate Hazards Group InfraRed Precipitation with Station data) daily precipitation data.
 
-## Usage
-
-### Basic Usage
-
-```python
-from main import AccidentAnalyzer
-
-# Initialize the analyzer
-analyzer = AccidentAnalyzer()
-
-# Collect data from all sources
-analyzer.collect_data()
-
-# Process and analyze the data
-analyzer.analyze_data()
-
-# Generate visualizations
-analyzer.generate_visualizations()
+## Customization
+To analyze different years, simply change the `years` array in the code:
+```javascript
+var years = [2001, 2008, 2019, 2022, 2023, 2024]; // Change these years
 ```
 
-### Command Line Usage
-
-```bash
-# Collect data from all sources
-python main.py --collect
-
-# Analyze collected data
-python main.py --analyze
-
-# Generate visualizations
-python main.py --visualize
-
-# Run complete pipeline
-python main.py --full
-```
-
-## Configuration
-
-Edit `config/settings.yaml` to customize:
-- Scraping parameters (delays, timeouts)
-- News source URLs
-- LLM settings
-- Analysis parameters
-
-## Data Output
-
-The project generates:
-- Raw scraped articles (CSV)
-- Processed accident data (CSV)
-- Interactive visualizations (HTML)
-- Static plots (PNG)
-- Analysis reports (JSON)
-
-## Ethical Considerations
-
-- Respects robots.txt files
-- Implements rate limiting (2-5 second delays)
-- Uses proper user agents
-- Handles errors gracefully
-- Stores only publicly available data
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## License
-
-MIT License - see LICENSE file for details.
-
-## Disclaimer
-
-This project is for educational and research purposes. Always respect website terms of service and implement ethical scraping practices.
+## Output Files
+The script will create separate map files for each year in your Google Drive folder called "NovaScotia_SPI".
